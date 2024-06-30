@@ -52,3 +52,31 @@ stages:
         PathtoPublish: '$(Build.ArtifactStagingDirectory)'
         ArtifactName: 'kube-manifests'
         publishLocation: 'Container'
+# Deploy Stage
+- stage: Deploy
+  displayName: Deploy Stage
+  jobs:
+  - job: Job_1
+    displayName: Agent job 1
+    pool:
+      vmImage: ubuntu-latest
+    steps:
+    - checkout: self
+      clean: true
+      fetchTags: false
+    - task: KubernetesManifest@1
+      displayName: createSecret
+      inputs:
+        action: createSecret
+        kubernetesServiceEndpoint: 9ce29b90-3dac-4a42-9c25-b973e77534ee
+        namespace: dev
+        secretName: dev-aksdevopsacr-secret00
+        dockerRegistryEndpoint: ce931957-c294-42e5-bb8f-624fe60ba6ed
+    - task: KubernetesManifest@1
+      displayName: deploy
+      inputs:
+        kubernetesServiceEndpoint: 9ce29b90-3dac-4a42-9c25-b973e77534ee
+        namespace: dev
+        manifests: kube-manifests/01-Deployment-and-LoadBalancer-Service.yml
+        containers: thiruazure2labacr.azurecr.io/custom1aksnginxapp1:$(Deploy.SourceVersion)
+        imagePullSecrets: dev-aksdevopsacr-secret00
